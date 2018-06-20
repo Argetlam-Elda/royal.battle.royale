@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 public class Config {
 
-	private static Config instance;
 	private final File configFile;
 	private HashMap<String, String> configTokens;
 
@@ -17,18 +16,13 @@ public class Config {
 	public static final String DISCORD_BOT_ID = "BOT_ID";
 	public static final String BOTLIST_API_TOKEN = "BOTLIST_API";
 	public static final String BOT_API_TOKEN = "BOT_PW_API";
+	public static final String BOT_INVITE_LINK = "BOT_INVITE_LINK";
+	public static final String DISCORD_INVITE_LINK = "DISCORD_INVITE_LINK";
 
 	public static final String NUM_SHARDS = "NUM_SHARDS";
 	public static final String PREFIX = "PREFIX";
 
-	public static Config getInstance() {
-		if (instance == null) {
-			instance = new Config();
-		}
-		return instance;
-	}
-
-	private Config() {
+	public Config() {
 		configFile = new File("config/Config.conf");
 		configTokens = new HashMap<>();
 		readConfigFile();

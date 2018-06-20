@@ -10,10 +10,16 @@ import java.util.ArrayList;
 
 public class BattleBot {
 
+	private static BattleBot instance;
+
 	private ShardingHandler shardingHandler;
 
-	public static void main(String[] args) throws Exception {
-		BattleBot bot = new BattleBot();
+	private Parser parser;
+
+	private Config config;
+
+	public static void main(String[] args) {
+		BattleBot.getInstance();
 	}
 
 	private class ShardingHandler {
@@ -21,18 +27,26 @@ public class BattleBot {
 
 		public ShardingHandler(Parser parser) throws Exception {
 			shardList = new ArrayList<>();
-			JDABuilder shardBuilder = new JDABuilder(AccountType.BOT).setToken(Config.getInstance().getConfig(Config.DISCORD_TOKEN));
+			JDABuilder shardBuilder = new JDABuilder(AccountType.BOT).setToken(config.getConfig(Config.DISCORD_TOKEN));
 			shardBuilder.addEventListener(parser);
-			int shardTotal = Integer.parseInt(Config.getInstance().getConfig(Config.NUM_SHARDS));
+			int shardTotal = Integer.parseInt(config.getConfig(Config.NUM_SHARDS));
 			for (int i = 0; i < shardTotal; i++) {
 				shardBuilder.useSharding(i, shardTotal).buildAsync();
 			}
 		}
 	}
 
-	public BattleBot() {
-		Parser parser = new Parser();
-		populateCommands(parser);
+	public static BattleBot getInstance() {
+		if (instance == null) {
+			instance = new BattleBot();
+		}
+		return instance;
+	}
+
+	private BattleBot() {
+		config = new Config();
+		parser = new Parser();
+		populateCommands();
 		// TODO - add logger
 		try {
 			shardingHandler = new ShardingHandler(parser);
@@ -44,8 +58,22 @@ public class BattleBot {
 		}
 	}
 
-	public static void populateCommands(Parser parser) {
-		parser.addCommand(new BattleRoyale());
+	public void populateCommands() {
+		parser.addCommand(new BattleRoyaleCommand());
+		parser.addCommand(new HelpCommand());
+		parser.addCommand(new Invite());
 		return;
+	}
+
+	public Parser getParser() {
+		return parser;
+	}
+
+	public ArrayList<JDA> getJDA() {
+		return shardingHandler.shardList;
+	}
+
+	public String getConfig(String key) {
+		return config.getConfig(key);
 	}
 }

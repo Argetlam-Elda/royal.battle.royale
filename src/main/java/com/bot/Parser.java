@@ -4,6 +4,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Parser extends ListenerAdapter {
 	private static Parser ourInstance;
@@ -34,9 +35,16 @@ public class Parser extends ListenerAdapter {
 
 		// Check if this is a command, and execute it if it is
 		// TODO - check permissions for commands here
+		if (contents[0].startsWith("!")) {
+			contents[0] = contents[0].substring(1);
+		}
+		else {
+			// Message did not start with the command character
+			return;
+		}
 		for (Command command: commands) {
 			if (command.getCommand().contains(contents[0])) {
-				command.execute(contents, event);
+				command.execute(Arrays.copyOfRange(contents, 1, contents.length), event);
 			}
 		}
 	}
@@ -47,5 +55,9 @@ public class Parser extends ListenerAdapter {
 		}
 		commands.add(command);
 		// commands.sort();
+	}
+
+	public ArrayList<Command> getCommands() {
+		return commands;
 	}
 }

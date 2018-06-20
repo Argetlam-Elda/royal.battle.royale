@@ -13,8 +13,10 @@ public interface Command {
 
 	String getDescription();
 
+	String getUsage();
+
 	ArrayList<String> getCommand();
 
-	String getCommandAdvailability();
+	String getCommandCategory();
 
 }
