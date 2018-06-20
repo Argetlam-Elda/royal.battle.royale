@@ -21,8 +21,8 @@ public class Fighter implements Comparable<Fighter> {
 		hp = 100;
 		revenge = null;
 		name = "";
-		// WeaponFactory.getInstance().buildWeapon();
-		// ArmorFactory.getInstance().buildArmor();
+		weapon = WeaponFactory.getInstance().buildWeapon();
+		// armor = ArmorFactory.getInstance().buildArmor();
 	}
 
 	public Fighter(Member member) {
