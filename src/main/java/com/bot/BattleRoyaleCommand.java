@@ -8,7 +8,7 @@ public class BattleRoyaleCommand implements Command {
 	@Override
 	public void execute(String[] args, MessageReceivedEvent event) {
 		event.getChannel().sendMessage("The battle royale command was run.").queue();
-		BattleRoyale battle = new BattleRoyale(args, event);
+		new BattleRoyale(args, event).start();
 	}
 
 	@Override
