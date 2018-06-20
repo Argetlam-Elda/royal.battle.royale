@@ -18,6 +18,7 @@ public class Invite implements Command {
 		embedBuilder.setTitle("Invite");
 		embedBuilder.setColor(java.awt.Color.BLACK);
 		embedBuilder.setDescription("Use this link to invite Royal Battle Royale to your discord server: " + BattleBot.getInstance().getConfig(Config.BOT_INVITE_LINK));
+
 		
 		event.getChannel().sendMessage(embedBuilder.build()).queue();
 	}
