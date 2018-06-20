@@ -15,7 +15,7 @@ public interface Command {
 
 	String getUsage();
 
-	ArrayList<String> getCommand();
+	String getCommand();
 
 	String getCommandCategory();
 

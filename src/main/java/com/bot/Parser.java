@@ -33,9 +33,9 @@ public class Parser extends ListenerAdapter {
 
 		String[] contents = event.getMessage().getContentRaw().split(" ");
 
-		// Check if this is a command, and execute it if it is
+		// Check if this is a command
 		// TODO - check permissions for commands here
-		if (contents[0].startsWith("!")) {
+		if (contents[0].startsWith(BattleBot.getInstance().getConfig(Config.PREFIX))) {
 			contents[0] = contents[0].substring(1);
 		}
 		else {
@@ -43,7 +43,7 @@ public class Parser extends ListenerAdapter {
 			return;
 		}
 		for (Command command: commands) {
-			if (command.getCommand().contains(contents[0])) {
+			if (command.getCommand().equals(contents[0])) {
 				command.execute(Arrays.copyOfRange(contents, 1, contents.length), event);
 			}
 		}
@@ -54,7 +54,6 @@ public class Parser extends ListenerAdapter {
 			return;
 		}
 		commands.add(command);
-		// commands.sort();
 	}
 
 	public ArrayList<Command> getCommands() {

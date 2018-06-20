@@ -1,16 +1,14 @@
 package com.bot;
 
+import com.bot.BattleRoyale.BattleRoyale;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class BattleRoyaleCommand implements Command {
 
 	@Override
 	public void execute(String[] args, MessageReceivedEvent event) {
 		event.getChannel().sendMessage("The battle royale command was run.").queue();
-
+		BattleRoyale battle = new BattleRoyale(args, event);
 	}
 
 	@Override
@@ -29,12 +27,12 @@ public class BattleRoyaleCommand implements Command {
 	}
 
 	@Override
-	public ArrayList<String> getCommand() {
-		return new ArrayList<>(Arrays.asList("battleroyale"));
+	public String getCommand() {
+		return "battleroyale";
 	}
 
 	@Override
 	public String getCommandCategory() {
-		return "everyone";
+		return "Battle";
 	}
 }

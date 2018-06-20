@@ -29,6 +29,8 @@ public class Config {
 	}
 
 	private void readConfigFile() {
+		// TODO - add bot name from config
+		// TODO - add about spiel from separate config
 		try {
 			Scanner fileScanner = new Scanner(configFile);
 			while (fileScanner.hasNextLine()) {

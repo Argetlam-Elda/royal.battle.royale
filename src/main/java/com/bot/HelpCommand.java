@@ -1,7 +1,9 @@
 package com.bot;
 
+import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -10,14 +12,28 @@ public class HelpCommand implements Command {
 	@Override
 	public void execute(String[] args, MessageReceivedEvent event) {
 		// TODO - print all other commands with tutorials and descriptions
+		// TODO - allow help to be sent in channel if requested
+		// TODO - sort commands by category
+		// TODO - if RoyalBattleRoyale is ever mentioned, print basic help message
+
+		EmbedBuilder embedBuilder = new EmbedBuilder();
+		embedBuilder.setColor(Color.BLACK);
+		embedBuilder.setTitle("Command List");
+
 		BattleBot.getInstance().getParser().getCommands();
 		String printout = new String();
 		for (Command command: BattleBot.getInstance().getParser().getCommands()) {
 			printout += "`" + BattleBot.getInstance().getConfig(Config.PREFIX)
-					+ (command.getCommand().size() == 1 ? command.getCommand().get(0) : command.getCommand())
+					+ command.getCommand()
 					+ " " + command.getUsage() + "`: " + command.getDescription() + "\n";
+			embedBuilder.addField(command.getCommandCategory(), "`" + BattleBot.getInstance().getConfig(Config.PREFIX)
+					+ command.getCommand()
+					+ " " + command.getUsage() + "`: " + command.getDescription(), false);
 		}
-		event.getChannel().sendMessage(printout).queue();
+		event.getAuthor().openPrivateChannel().complete().sendMessage(printout).queue();
+		event.getAuthor().openPrivateChannel().complete().sendMessage(embedBuilder.build()).queue();
+		// embedBuilder.setDescription("");
+
 	}
 
 	@Override
@@ -27,22 +43,22 @@ public class HelpCommand implements Command {
 
 	@Override
 	public String getDescription() {
-		return "Displays all commands with a short description of what they do and how to use them, or one command with a short tutorial on how to use it.";
+		return "Lists all commands, or give a short tutorial of one command.";
 	}
 
 	@Override
 	public String getUsage() {
-		return "<\"\"|command_name>";
+		return "<\"\"|command_name_without_prefix>";
 	}
 
 	@Override
-	public ArrayList<String> getCommand() {
-		return new ArrayList<>(Arrays.asList("help"));
+	public String getCommand() {
+		return "help";
 	}
 
 	// Category
 	@Override
 	public String getCommandCategory() {
-		return "Help";
+		return "Meta";
 	}
 }

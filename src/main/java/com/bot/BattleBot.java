@@ -31,7 +31,7 @@ public class BattleBot {
 			shardBuilder.addEventListener(parser);
 			int shardTotal = Integer.parseInt(config.getConfig(Config.NUM_SHARDS));
 			for (int i = 0; i < shardTotal; i++) {
-				shardBuilder.useSharding(i, shardTotal).buildAsync();
+				shardList.add(shardBuilder.useSharding(i, shardTotal).buildAsync());
 			}
 		}
 	}
@@ -61,7 +61,9 @@ public class BattleBot {
 	public void populateCommands() {
 		parser.addCommand(new BattleRoyaleCommand());
 		parser.addCommand(new HelpCommand());
-		parser.addCommand(new Invite());
+		parser.addCommand(new InviteCommand());
+		parser.addCommand(new SupportCommand());
+		parser.addCommand(new AboutCommand());
 		return;
 	}
 
