@@ -3,8 +3,6 @@ package com.bot.BattleRoyale;
 import net.dv8tion.jda.core.entities.Member;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Comparator;
-
 public class Fighter implements Comparable<Fighter> {
 
 	private String name;
@@ -22,7 +20,7 @@ public class Fighter implements Comparable<Fighter> {
 		revenge = null;
 		name = "";
 		weapon = WeaponFactory.getInstance().buildWeapon();
-		// armor = ArmorFactory.getInstance().buildArmor();
+		armor = ArmorFactory.getInstance().buildArmor();
 	}
 
 	public Fighter(Member member) {

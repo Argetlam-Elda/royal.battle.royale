@@ -35,7 +35,7 @@ public class ArmorFactory {
 		public boolean cripple(int crippleDamage, Random rand) {
 			if (rand.nextInt(10) + crippleDamage > 7 + crippleSave) {
 				// TODO - what to do on a cripple
-				name = "damaged" + name;
+				name = "damaged " + name;
 				resist = 0;
 				return true;
 			}
@@ -59,6 +59,10 @@ public class ArmorFactory {
 
 	private ArmorFactory() {
 		// TODO - init from file
+	}
+
+	public Armor buildArmor() {
+		return null;
 	}
 
 }
