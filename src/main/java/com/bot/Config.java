@@ -5,9 +5,20 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * This class stores all information related to starting the bot (eg. discord's tokens) and meta data regarding the bot (e.g. Bot invite link, prefix token).
+ * @author ArgetlamElda
+ */
 public class Config {
 
+	/**
+	 * The file containing all the configuration data.
+	 */
 	private final File configFile;
+
+	/**
+	 * A map of all the config tokens, stored under their relative string keys.
+	 */
 	private HashMap<String, String> configTokens;
 
 	public static final String DISCORD_TOKEN = "DISCORD_TOKEN";
@@ -22,12 +33,18 @@ public class Config {
 	public static final String NUM_SHARDS = "NUM_SHARDS";
 	public static final String PREFIX = "PREFIX";
 
+	/**
+	 * Build the config
+	 */
 	public Config() {
 		configFile = new File("config/Config.conf");
 		configTokens = new HashMap<>();
 		readConfigFile();
 	}
 
+	/**
+	 * Read in the data stored in the configs and store it in the configToken hashmap.
+	 */
 	private void readConfigFile() {
 		// TODO - add bot name from config
 		// TODO - add about spiel from separate config
@@ -46,6 +63,11 @@ public class Config {
 		}
 	}
 
+	/**
+	 * Get a specific token from the config list.
+	 * @param key - location of the desired information
+	 * @return - the data corresponding to the key, if it was read from the config file.
+	 */
 	public String getConfig(String key) {
 		return configTokens.get(key);
 	}

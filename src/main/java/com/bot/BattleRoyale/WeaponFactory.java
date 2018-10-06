@@ -5,35 +5,65 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 import com.bot.BattleRoyale.ArmorFactory.Armor;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Build weapons from the stats given in the config file.
+ * @author ArgetlamElda
+ */
 public class WeaponFactory {
 
-	public static final String CHANCE_RANGE_MIN = "CHANCE RANGE MIN";
-	public static final String CHANCE_RANGE_MAX = "CHANCE RANGE MAX";
-	public static final String START_WEAPON = "START WEAPON";
-	public static final String END_WEAPON = "END WEAPON";
+	private static final String CHANCE_RANGE_MIN = "CHANCE RANGE MIN";
+	private static final String CHANCE_RANGE_MAX = "CHANCE RANGE MAX";
+	private static final String START_WEAPON = "START WEAPON";
+	private static final String END_WEAPON = "END WEAPON";
 
-	public static final String NAME = "NAME";
-	public static final String DAMAGE = "DAMAGE";
-	public static final String NORMAL_HIT_MESSAGE = "NORMAL HIT MESSAGE";
-	public static final String CRITICAL_HIT_MESSAGE = "CRITICAL HIT MESSAGE";
-	public static final String SELF_HIT_MESSAGE = "SELF HIT MESSAGE";
-	public static final String SUICIDE_MESSAGE = "SUICIDE MESSAGE";
-	public static final String CRIPPLE_DAMAGE = "CRIPPLE DAMAGE";
+	private static final String NAME = "NAME";
+	private static final String DAMAGE = "DAMAGE";
+	private static final String NORMAL_HIT_MESSAGE = "NORMAL HIT MESSAGE";
+	private static final String CRITICAL_HIT_MESSAGE = "CRITICAL HIT MESSAGE";
+	private static final String SELF_HIT_MESSAGE = "SELF HIT MESSAGE";
+	private static final String SUICIDE_MESSAGE = "SUICIDE MESSAGE";
+	private static final String CRIPPLE_DAMAGE = "CRIPPLE DAMAGE";
 
-
+	/**
+	 * Stores all the data needed for a weapon, includeing damage and flavor text.
+	 */
 	public class Weapon implements Cloneable {
 
+		/**
+		 * The weapon's name.
+		 */
 		private String name;
+
+		/**
+		 * The weapon's damage.
+		 */
 		private int damage;
 
+		/**
+		 * The upper limit of this weapon's spawn range.
+		 */
 		private int spawnRangeMax;
+
+		/**
+		 * The lower limit of this weapon's spawn range.
+		 */
 		private int spawnRangeMin;
 
+		/**
+		 * The different flavor texts for this weapon.
+		 */
 		private HashMap<WeaponFlavor, String> flavors;
 
+		/**
+		 * The damage this weapon does to armor.
+		 */
 		private int crippleDamage;
 
+		/**
+		 * Initialize this weapon with no name, 0 damage, 0 cripple damage, and no flavor text.
+		 */
 		private Weapon() {
 			name = "";
 			damage = 0;
@@ -41,14 +71,28 @@ public class WeaponFactory {
 			flavors = new HashMap<>();
 		}
 
+		/**
+		 * Check if spawnChane is within this weapon's spawn range.
+		 * @param spawnChance - the (usually random) number that determines what weapon you get.
+		 * @return - weather you get this weapon or not.
+		 */
 		private boolean isInSpawnRange(int spawnChance) {
 			return (spawnChance < spawnRangeMax && spawnChance >= spawnRangeMin);
 		}
 
+		/**
+		 * Get the flavor text for this weapon for the specified kind of hit.
+		 * @param flavorKey - the key corresponding to the type of damage done, and thus the type of flavor text needed
+		 * @return - flavorKey's corresponding flavor text
+		 */
 		public String getFlavor(WeaponFlavor flavorKey) {
 			return flavors.get(flavorKey);
 		}
 
+		/**
+		 * Get this weapon's damage.
+		 * @return - the weapon's damage
+		 */
 		public int getDamage() {
 			return damage;
 		}
@@ -68,10 +112,20 @@ public class WeaponFactory {
 			return weapon;
 		}
 
+		/**
+		 * Attempt to cripple the given armor with this weapon.
+		 * @param armor - to be crippled
+		 * @param rand - random number generator for crippling armor
+		 * @return - weather the armor was crippled or not
+		 */
 		public boolean cripple(Armor armor, Random rand) {
 			return armor.cripple(crippleDamage, rand);
 		}
 
+		/**
+		 * Check if this weapon is correctly built or not.
+		 * @return - this weapon has all the right values
+		 */
 		private boolean isBuilt() {
 			if (name == null) {
 				return false;
@@ -85,6 +139,9 @@ public class WeaponFactory {
 		}
 	}
 
+	/**
+	 * The different types of damage flavor text.
+	 */
 	public enum WeaponFlavor {
 		HIT, CRIT, SELF, SUICIDE
 	}
@@ -98,18 +155,35 @@ public class WeaponFactory {
 		return instance;
 	}
 
+	/**
+	 * A list of the weapons generated from the config file.
+	 */
 	private ArrayList<Weapon> weapons;
 
+	/**
+	 * The maximum possible spawn range for these weapons.
+	 */
 	private int rangeMax;
 
+	/**
+	 * The minimum possible spawn range for these weapons.
+	 */
 	private int rangeMin;
 
+	/**
+	 * Initialize the weapon factory and read in weapon data from the config file.
+	 * @throws IllegalStateException - the weapon ranges have gaps
+	 */
 	private WeaponFactory() throws IllegalStateException {
 		weapons = new ArrayList<>();
 		File file = new File("config/Battle_Royale_Configs/Battle_Royale_Weapons.txt");
 		readWeaponsFromFile(file);
 	}
 
+	/**
+	 * "Build" a weapon from the available weapons in the factory.
+	 * @return - a randomly selected weapon
+	 */
 	public Weapon buildWeapon() {
 		Random rand = new Random();
 		int chance = rand.nextInt(rangeMax - rangeMin) + rangeMin;
@@ -121,6 +195,11 @@ public class WeaponFactory {
 		return null;
 	}
 
+	/**
+	 * Go through the given file and generate weapons for each block of stats.
+	 * @param file - file containing all the weapon stat blocks
+	 * @throws IllegalStateException - the weapon ranges have gaps
+	 */
 	private void readWeaponsFromFile(File file) throws IllegalStateException {
 		try {
 			HashMap<String, String> hashMap = new HashMap<>();
@@ -163,7 +242,11 @@ public class WeaponFactory {
 		}
 	}
 
-	private void readWeapon(Scanner fileScanner) {
+	/**
+	 * Go through a given stat block and generate a weapon from the given information.
+	 * @param fileScanner - a scanner set to the beginning of the stat block to scan
+	 */
+	private void readWeapon(@NotNull Scanner fileScanner) {
 		HashMap<String, Boolean> check = new HashMap<>();
 		check.put(NAME, false);
 		check.put(DAMAGE, false);

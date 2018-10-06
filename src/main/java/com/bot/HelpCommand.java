@@ -10,7 +10,7 @@ import java.util.Arrays;
 public class HelpCommand implements Command {
 
 	@Override
-	public void execute(String[] args, MessageReceivedEvent event) {
+	public void execute(ArrayList<String> arguments, MessageReceivedEvent event) {
 		// TODO - print all other commands with tutorials and descriptions
 		// TODO - allow help to be sent in channel if requested
 		// TODO - sort commands by category

@@ -10,7 +10,7 @@ import java.util.Arrays;
 public class InviteCommand implements Command {
 
 	@Override
-	public void execute(String[] args, MessageReceivedEvent event) {
+	public void execute(ArrayList<String> arguments, MessageReceivedEvent event) {
 		EmbedBuilder embedBuilder = new EmbedBuilder();
 		embedBuilder.setColor(Color.BLACK);
 		embedBuilder.setTitle("Invite");

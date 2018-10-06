@@ -3,11 +3,13 @@ package com.bot;
 import com.bot.BattleRoyale.BattleRoyale;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
+import java.util.ArrayList;
+
 public class BattleRoyaleCommand implements Command {
 
 	@Override
-	public void execute(String[] args, MessageReceivedEvent event) {
-		new BattleRoyale(args, event).start();
+	public void execute(ArrayList<String> arguments, MessageReceivedEvent event) {
+		new BattleRoyale(arguments, event).start();
 	}
 
 	@Override

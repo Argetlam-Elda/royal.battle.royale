@@ -1,10 +1,22 @@
 package com.bot.BattleRoyale;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
 public class ArmorFactory {
-	public class Armor {
+
+	private static final String CHANCE_RANGE_MIN = "CHANCE RANGE MIN";
+	private static final String CHANCE_RANGE_MAX = "CHANCE RANGE MAX";
+	private static final String START_ARMOR = "START ARMOR";
+	private static final String END_ARMOR = "END ARMOR";
+
+	private static final String NAME = "NAME";
+	private static final String DAMAGE_RESIST = "RESIST";
+	private static final String BREAK_SAVE = "BREAK SAVE";
+
+
+	public class Armor implements Cloneable {
 
 		private String name;
 		private int resist;
@@ -57,7 +69,10 @@ public class ArmorFactory {
 		return instance;
 	}
 
+	private ArrayList<Armor> armors;
+
 	private ArmorFactory() {
+		armors = new ArrayList<>();
 		// TODO - init from file
 	}
 
