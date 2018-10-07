@@ -73,8 +73,8 @@ public class WeaponFactory {
 
 		/**
 		 * Check if spawnChane is within this weapon's spawn range.
-		 * @param spawnChance - the (usually random) number that determines what weapon you get.
-		 * @return - weather you get this weapon or not.
+		 * @param spawnChance - the (usually random) number that determines what weapon you get
+		 * @return - whether you get this weapon or not
 		 */
 		private boolean isInSpawnRange(int spawnChance) {
 			return (spawnChance < spawnRangeMax && spawnChance >= spawnRangeMin);
