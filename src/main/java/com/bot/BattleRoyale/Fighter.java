@@ -3,6 +3,8 @@ package com.bot.BattleRoyale;
 import net.dv8tion.jda.core.entities.Member;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Random;
+
 /**
  * This stores all kinds of data about the fighters, and preforms actions such as attacking and defending.
  */
@@ -57,13 +59,38 @@ public class Fighter implements Comparable<Fighter> {
 	}
 
 	/**
-	 * Subtract the incoming damage from the fighters hp pool.
+	 * Subtract the incoming damage from the fighters hp pool, after reducing by armor resistance.
 	 * @param damage - how much damage to take
 	 */
-	public void takeDamage(int damage) {
-		// TODO - make this return how much health the player has, and pass in how much damage they attack with
-		// maybe even add a damage type
+	public int takeDamage(int damage) {
+		// TODO - maybe add a damage type
+		damage -= armor.getResist();
+		damage = Math.max(damage, 0);
 		hp -= damage;
+		return damage;
+	}
+
+	public String lootFigher(Fighter corpse, Random rand) {
+		if (corpse.getHealth() > 0) {
+			return "";
+		}
+		boolean w = false;
+		String lootRecord = "";
+		if (rand.nextInt(WeaponFactory.getInstance().getMaxDamage()) + 1 < corpse.weapon.getDamage() - weapon.getDamage()) {
+			weapon = corpse.weapon;
+			w = true;
+			lootRecord = ", and loots their " + weapon.toString();
+		}
+		if (rand.nextInt(ArmorFactory.getInstance().getMaxResist()) + 1 < corpse.armor.getResist() - armor.getResist()) {
+			armor = corpse.armor;
+			if (w) {
+				lootRecord += " and " + armor.toString();
+			}
+			else {
+				lootRecord = ", and loots their " + armor.toString();
+			}
+		}
+		return lootRecord;
 	}
 
 	public String toString() {

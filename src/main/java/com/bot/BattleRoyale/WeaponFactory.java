@@ -89,6 +89,14 @@ public class WeaponFactory {
 			return flavors.get(flavorKey);
 		}
 
+		public int getFlavorTextLength() {
+			int length = 0;
+			for (String flavor: flavors.values()) {
+				length = Math.max(flavor.length(), length);
+			}
+			return length;
+		}
+
 		/**
 		 * Get this weapon's damage.
 		 * @return - the weapon's damage
@@ -193,6 +201,18 @@ public class WeaponFactory {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get the highest damage a weapon can do
+	 * @return - the highest damage of any weapon in the game
+	 */
+	public int getMaxDamage() {
+		int damage = 0;
+		for (Weapon weapon: weapons) {
+			damage = Math.max(weapon.damage, damage);
+		}
+		return damage;
 	}
 
 	/**

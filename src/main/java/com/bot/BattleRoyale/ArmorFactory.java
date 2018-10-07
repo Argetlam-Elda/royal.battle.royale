@@ -168,6 +168,14 @@ public class ArmorFactory {
 		return null;
 	}
 
+	public int getMaxResist() {
+		int resist = 0;
+		for (Armor armor: armors) {
+			resist = Math.max(armor.resist, resist);
+		}
+		return resist;
+	}
+
 	/**
 	 * Go through the given file and generate armor for each stat block.
 	 * @param file -  file containing all the armor stat blocks

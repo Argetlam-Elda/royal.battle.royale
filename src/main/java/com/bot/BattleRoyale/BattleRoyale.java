@@ -34,8 +34,7 @@ public class BattleRoyale extends Thread {
 	private ArrayList<Fighter> fighters;
 
 	/**
-	 * A stored random variable for seeding fights
-	 * TODO - maybe remove, since fights will almost never have the same amount of people
+	 * A stored random generator, so there are no overlaps in output.
 	 */
 	private Random rand;
 
@@ -50,12 +49,34 @@ public class BattleRoyale extends Thread {
 	 * @param event
 	 */
 	public BattleRoyale(@NotNull ArrayList<String> arguments, @NotNull MessageReceivedEvent event) {
-		rand = new Random();
-		verbose = true;
-		guild = event.getGuild();
-		channel = event.getChannel();
 		fighters = new ArrayList<>();
 		fighters = getFighters(arguments, event);
+		rand = new Random();
+		verbose = false;
+
+		guild = event.getGuild();
+
+		// TODO - check for a fight-pit or battle-royale channel, and use those first. Other wise, dm the user or if the specify play in the current channel
+		channel = event.getChannel();
+
+		ArrayList<String> switches = new ArrayList<>();
+		ArrayList<String> other = new ArrayList<>();
+		for (String argument: arguments) {
+			if (!argument.startsWith("-")) {
+				switches.add(argument.substring(1).toLowerCase());
+			}
+			else {
+				other.add(argument);
+			}
+		}
+
+		if (switches.contains("v") || switches.contains("verbose")) {
+			verbose = true;
+		}
+
+		if (switches.contains("dm") || switches.contains("direct-message")) {
+			channel = event.getAuthor().openPrivateChannel().complete();
+		}
 	}
 
 	/**
@@ -75,15 +96,23 @@ public class BattleRoyale extends Thread {
 			roundCount++;
 			// Get the max name length
 			int nameLength = 0;
+			int weaponNameLength = 0;
+			int hitFlavorTextLength = 0;
 			for (Fighter fighter: fighters) {
 				nameLength = Math.max(fighter.toString().length(), nameLength);
+				weaponNameLength = Math.max(fighter.getWeapon().toString().length(), weaponNameLength);
+				hitFlavorTextLength = Math.max(fighter.getWeapon().getFlavorTextLength(), hitFlavorTextLength);
 			}
 			int startingCombatants = fighters.size();
 			// Do a round of battle
-			String battleReport = "\tRound " + roundCount + ":\tCombatants: " + startingCombatants + "\n";
-			battleReport += enactRound(nameLength);
+			StringBuilder battleReport = new StringBuilder();
+			battleReport.append(enactRound(nameLength, weaponNameLength, hitFlavorTextLength));
+			if (battleReport.toString().length() == 0) {
+				battleReport.append("No fatalities.\n");
+			}
+			battleReport.insert(0, "\tRound " + roundCount + ":\tCombatants: " + startingCombatants + "\n");
 			try {
-				sendBattleReport(battleReport);
+				sendBattleReport(battleReport.toString());
 				sendHPList(nameLength);
 			} catch (InterruptedException e) {
 				return;
@@ -110,20 +139,20 @@ public class BattleRoyale extends Thread {
 		if (!verbose) {
 			return;
 		}
-		String output = "```\nRemaining Combatants: " + fighters.size() + "\n";
+		StringBuilder output = new StringBuilder("```\nRemaining Combatants: " + fighters.size() + "\n");
 		for (Fighter fighter: fighters) {
 			String line = String.format("%-" + nameLength + "s: %-2d\n", fighter.toString(), fighter.getHealth());
 			if (output.length() + line.length() < 1900) {
-				output += line;
+				output.append(line);
 			}
 			else {
-				output += "```";
-				channel.sendMessage(output).queue();
+				output.append("```");
+				channel.sendMessage(output).complete();
 				sleep(1000);
-				output = "```\n" + line;
+				output = new StringBuilder("```\n" + line);
 			}
 		}
-		output += "```";
+		output.append("```");
 		channel.sendMessage(output).queue();
 		sleep(1000);
 	}
@@ -134,25 +163,22 @@ public class BattleRoyale extends Thread {
 	 * @throws InterruptedException - sleep() failed, probably
 	 */
 	private void sendBattleReport(String battleReport) throws InterruptedException {
-		String output = "```\n";
+		StringBuilder output = new StringBuilder("```\n");
 		Scanner reportScanner = new Scanner(battleReport);
-		if (!reportScanner.hasNext()) {
-			// if there is no battle report
-			output += "No fatalities.\n";
-		}
 		while (reportScanner.hasNext()) {
 			String line = reportScanner.nextLine();
 			if (output.length() + line.length() < 1900) {
-				output += line + "\n";
+				output.append(line);
+				output.append("\n");
 			}
 			else {
-				output += "```";
+				output.append("```");
 				channel.sendMessage(output).queue();
 				sleep(1000);
-				output = "```\n" + line + "\n";
+				output = new StringBuilder("```\n" + line + "\n");
 			}
 		}
-		output += "```";
+		output.append("```");
 		channel.sendMessage(output).queue();
 		sleep(1000);
 
@@ -165,8 +191,7 @@ public class BattleRoyale extends Thread {
 	 * @param nameLength - the max name length in this round
 	 * @return - A string containing the log data for this attack
 	 */
-	private String enactAttack(@NotNull Fighter attacker, Fighter defender, int nameLength) {
-		// TODO - go through and put weapon and armor back in
+	private String enactAttack(@NotNull Fighter attacker, Fighter defender, int nameLength, int weaponNameLength, int hitFlavorTextLength) {
 		// Target of the attack, will be defender unless there is a critical fail
 		Fighter target = defender;
 		// Was this hit critical? 2/3 conditions is is
@@ -178,7 +203,6 @@ public class BattleRoyale extends Thread {
 		// Critical fail, hit self
 		if (roll == 1) {
 			target = attacker;
-			// damage -= target.getArmor().getResist();
 		}
 		else if (roll == 20) {
 			damage += 10;
@@ -186,76 +210,77 @@ public class BattleRoyale extends Thread {
 		else {
 			critical = false;
 		}
-		// If there is no target (only if attacker is the last combatant and didn't hit themself
+		// If there is no target (only if attacker is the last combatant and didn't hit themself)
 		if (target == null) {
 			return "";
 		}
-		// Target takes damage
-		target.takeDamage(Math.max(damage, 0));
-		String desctructionText = "";
+		// Target takes damage, and return the damage they take after armor resistance.
+		damage = target.takeDamage(damage);
 		String hitFlavorText;
-		if (roll == 1) {
-			if (target.getHealth() < 1) {
+		StringBuilder battleReport = new StringBuilder();
+		// on a critical hit
+		if (roll == 20) {
+			hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.CRIT);
+			battleReport.append("  Critical hit!\n");
+			if (attacker.getWeapon().cripple(defender.getArmor(), rand)) {
+				battleReport.append(attacker.toString() + " destroyed " + defender.toString() + "'s " + defender.getArmor().toString() + " with their " + attacker.getWeapon() + ".\n");
+			}
+		}
+		// on a critical fail
+		else if (roll == 1) {
+			battleReport.append("  Critical fail!\n");
+			if (target.getHealth() <= 0) {
 				hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.SUICIDE);
 			}
 			else {
 				hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.SELF);
+				if (fighters.size() == 1) {
+					battleReport.append(attacker);
+					battleReport.append(", seeing no more opponents before them, attempts to end it all, but fails. Not that we expected anything more from them.");
+				}
 			}
 		}
-		else if (roll == 20) {
-			hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.CRIT);
-			// if (attacker.getWeapon().cripple(defender.getArmor(), rand)) {
-				// desctructionText = attacker.toString() + " destroyed " + defender.toString() + "'s " + defender.getArmor().toString() + " with their " + attacker.getWeapon() + ".";
-			// }
-		}
+		// on a regular hit
 		else {
 			hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.HIT);
+			battleReport.append("\n");
 		}
-		String battleReport = "";
-		if (verbose) {
-			// Print the default format attack
-			battleReport += String.format("\n%-" + nameLength + "s %-" + "10" + "s %-" + nameLength + "s with their %-" + "1" + "s for %2d", attacker, hitFlavorText, (target == attacker ? "themself" : target), attacker.getWeapon(), damage);
-			if (roll == 20 && target == defender) {
-				battleReport += "\nCritical hit! " + desctructionText;
-			}
-			else if (roll == 1) {
-				battleReport += "\nCritical fail! ";
-				if (target.getHealth() > 0 && fighters.size() == 1) {
-					battleReport += "\n" + attacker + ", seeing no more opponents before them, attempts to end it all, but fails. Not that we expected anything more from them.";
-				}
-			}
-			if (target.getHealth() < 1) {
-				battleReport += "\n";
-			}
+		// Store the default format attack
+		String format = "%-" + nameLength + "s %-" + hitFlavorTextLength + "s %-" + nameLength + "s with their %-" + weaponNameLength + "s for %" + "2" + "d";
+		battleReport.insert(0, String.format(format, attacker, hitFlavorText, (target == attacker ? "themself" : target), attacker.getWeapon(), damage));
+		if (!verbose) {
+			battleReport = new StringBuilder();
 		}
-		// TODO - loot weapon and or armor
-		if (target.getHealth() < 1) {
+		if (target.getHealth() <= 0) {
 			if (attacker == target) {
 				if (fighters.size() == 1) {
-					battleReport += "\n" + attacker + ", seeing no more opponents before them, decides to end it all.";
+					battleReport.append(attacker);
+					battleReport.append(", seeing no more opponents before them, decides to end it all.");
 				} else {
-					battleReport += attacker + " kills themself out of shame.";
-				}
-			} else if (roll == 20) {
-				battleReport += attacker + " fucking murders " + defender + " with their " + attacker.getWeapon();
-				// TODO - add weapon and armor looting printout
-				if (false) {
-
-				} else {
-					battleReport += "!";
+					battleReport.append(attacker);
+					battleReport.append(" kills themself out of shame.");
 				}
 			} else {
-				battleReport += attacker + " kills " + defender + " with their " + attacker.getWeapon();
-				if (false) {
-
-				} else {
-					battleReport += "!";
+				if (roll == 20) {
+					battleReport.append(attacker);
+					battleReport.append(" fucking murders ");
+					battleReport.append(defender);
+					battleReport.append(" with their ");
+					battleReport.append(attacker.getWeapon());
 				}
+				else {
+					battleReport.append(attacker);
+					battleReport.append(" kills ");
+					battleReport.append(defender);
+					battleReport.append(" with their ");
+					battleReport.append(attacker.getWeapon());
+				}
+				battleReport.append(attacker.lootFigher(defender, rand));
+				battleReport.append("!\n");
 			}
-
 			fighters.remove(target);
 		}
-		return battleReport + (battleReport.length() == 0 ? "" : "\n");
+		return battleReport.toString();
 	}
 
 	/**
@@ -263,9 +288,9 @@ public class BattleRoyale extends Thread {
 	 * @param nameLength - the max name length in this round
 	 * @return - A string containing the log data for attacks in this round
 	 */
-	private String enactRound(int nameLength) {
+	private String enactRound(int nameLength, int weaponNameLength, int hitFlavorTextLength) {
 		// Textual record of what happens during each round
-		String battleReport = new String();
+		StringBuilder battleReport = new StringBuilder();
 		// Shuffle the fighter attack order
 		ArrayList<Fighter> shuffledFighters = (ArrayList<Fighter>) fighters.clone();
 		Collections.shuffle(shuffledFighters);
@@ -277,16 +302,16 @@ public class BattleRoyale extends Thread {
 			}
 			else if (fighters.size() == 1) {
 				// TODO - make enactAttack()
-				// battleReport += enactAttack();
+				// battleReport.append(enactAttack();
 			}
 			else {
 				while(defender == null || defender == attacker) {
 					defender = fighters.get(rand.nextInt(fighters.size()));
 				}
 			}
-			battleReport += enactAttack(attacker, defender, nameLength);
+			battleReport.append(enactAttack(attacker, defender, nameLength, weaponNameLength, hitFlavorTextLength));
 		}
-		return battleReport;
+		return battleReport.toString();
 	}
 
 	/**
@@ -306,7 +331,7 @@ public class BattleRoyale extends Thread {
 			candidates = new ArrayList<>(event.getMessage().getMentionedMembers());
 		}
 		// Play with players that have the mentioned rolls
-		// TODO -
+		// TODO - actually work, check if there are mentioned players
 		else {
 			candidates = new ArrayList<>(event.getGuild().getMembersWithRoles(event.getMessage().getMentionedRoles()));
 		}
