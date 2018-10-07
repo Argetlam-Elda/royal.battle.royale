@@ -3,7 +3,6 @@ package com.bot;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -22,7 +21,7 @@ public class Parser extends ListenerAdapter {
 	/**
 	 * Initialize the parser with no commands.
 	 */
-	public Parser() {
+	Parser() {
 		commands = new ArrayList<>();
 	}
 
@@ -46,6 +45,7 @@ public class Parser extends ListenerAdapter {
 			for (Command command : commands) {
 				if (command.getCommand().equals(contents.get(0))) {
 					command.execute(contents, event);
+					break;
 				}
 			}
 		} catch (Exception e) {

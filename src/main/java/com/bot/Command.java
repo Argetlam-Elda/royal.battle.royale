@@ -3,7 +3,6 @@ package com.bot;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An interface for building commands, with the different actions they can take.
