@@ -50,7 +50,7 @@ public class Fighter implements Comparable<Fighter> {
 	 * Initialize a default fighter, then set it's name to the given member's nickname, or barring that, their name.
 	 * @param member - the member to name this fighter after
 	 */
-	public Fighter(Member member) {
+	Fighter(Member member) {
 		this();
 		name = member.getNickname();
 		if (name == null) {
@@ -63,13 +63,18 @@ public class Fighter implements Comparable<Fighter> {
 	 * @param damage - how much damage to take
 	 */
 	public int takeDamage(int damage) {
-		// TODO - maybe add a damage type
 		damage -= armor.getResist();
 		damage = Math.max(damage, 0);
 		hp -= damage;
 		return damage;
 	}
 
+	/**
+	 * If the corpse is dead, try and take its stuff.
+	 * @param corpse - body to loot
+	 * @param rand - number generator to use for looting
+	 * @return - a string telling what was looted
+	 */
 	public String lootFigher(Fighter corpse, Random rand) {
 		if (corpse.getHealth() > 0) {
 			return "";

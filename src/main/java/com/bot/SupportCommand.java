@@ -5,7 +5,6 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class SupportCommand implements Command {
 

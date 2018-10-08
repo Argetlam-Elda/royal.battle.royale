@@ -9,7 +9,11 @@ public class BattleRoyaleCommand implements Command {
 
 	@Override
 	public void execute(ArrayList<String> arguments, MessageReceivedEvent event) {
-		new BattleRoyale(arguments, event).start();
+		try {
+			new BattleRoyale(arguments, event).start();
+		} catch (IllegalStateException e) {
+			event.getChannel().sendMessage(e.getMessage()).queue();
+		}
 	}
 
 	@Override

@@ -22,12 +22,12 @@ public class Config {
 	private HashMap<String, String> configTokens;
 
 	public static final String DISCORD_TOKEN = "DISCORD_TOKEN";
-	public static final String REDDIT_TOKEN = "REDDIT_TOKEN";
-	public static final String OWNER_ID = "OWNER_ID";
-	public static final String DISCORD_BOT_ID = "BOT_ID";
-	public static final String BOTLIST_API_TOKEN = "BOTLIST_API";
-	public static final String BOT_API_TOKEN = "BOT_PW_API";
-	public static final String BOT_INVITE_LINK = "BOT_INVITE_LINK";
+//	public static final String REDDIT_TOKEN = "REDDIT_TOKEN";
+//	public static final String OWNER_ID = "OWNER_ID";
+//	public static final String DISCORD_BOT_ID = "BOT_ID";
+//	public static final String BOTLIST_API_TOKEN = "BOTLIST_API";
+//	public static final String BOT_API_TOKEN = "BOT_PW_API";
+//	public static final String BOT_INVITE_LINK = "BOT_INVITE_LINK";
 	public static final String DISCORD_INVITE_LINK = "DISCORD_INVITE_LINK";
 
 	public static final String NUM_SHARDS = "NUM_SHARDS";
@@ -36,7 +36,7 @@ public class Config {
 	/**
 	 * Build the config
 	 */
-	public Config() {
+	Config() {
 		configFile = new File("config/Config.conf");
 		configTokens = new HashMap<>();
 		readConfigFile();

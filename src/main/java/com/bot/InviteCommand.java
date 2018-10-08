@@ -5,7 +5,6 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class InviteCommand implements Command {
 
@@ -18,7 +17,8 @@ public class InviteCommand implements Command {
 		embedBuilder.addField("Link", BattleBot.getInstance().getJDA().get(0).asBot().getInviteUrl(), false);
 
 		event.getAuthor().openPrivateChannel().complete().sendMessage(embedBuilder.build()).queue();
-		event.getMessage().addReaction("U+1F44D");
+//		event.getMessage().addReaction("U+1F60D").queue();
+//		event.getMessage().addReaction(event.getGuild().getEmotes().get(0)).queue();
 
 
 	}

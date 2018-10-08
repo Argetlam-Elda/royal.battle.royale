@@ -1,11 +1,11 @@
 package com.bot;
 
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class HelpCommand implements Command {
 
@@ -14,24 +14,29 @@ public class HelpCommand implements Command {
 		// TODO - print all other commands with tutorials and descriptions
 		// TODO - allow help to be sent in channel if requested
 		// TODO - sort commands by category
-		// TODO - if RoyalBattleRoyale is ever mentioned, print basic help message
 
 		EmbedBuilder embedBuilder = new EmbedBuilder();
 		embedBuilder.setColor(Color.BLACK);
 		embedBuilder.setTitle("Command List");
 
-		BattleBot.getInstance().getParser().getCommands();
-		String printout = new String();
+		StringBuilder printout = new StringBuilder();
 		for (Command command: BattleBot.getInstance().getParser().getCommands()) {
-			printout += "`" + BattleBot.getInstance().getConfig(Config.PREFIX)
-					+ command.getCommand()
-					+ " " + command.getUsage() + "`: " + command.getDescription() + "\n";
+			printout.append("`");
+			printout.append(BattleBot.getInstance().getConfig(Config.PREFIX));
+			printout.append(command.getCommand());
+			printout.append(" ");
+			printout.append(command.getUsage());
+			printout.append("`: ");
+			printout.append(command.getDescription());
+			printout.append("\n");
 			embedBuilder.addField(command.getCommandCategory(), "`" + BattleBot.getInstance().getConfig(Config.PREFIX)
 					+ command.getCommand()
 					+ " " + command.getUsage() + "`: " + command.getDescription(), false);
 		}
-		event.getAuthor().openPrivateChannel().complete().sendMessage(printout).queue();
-		event.getAuthor().openPrivateChannel().complete().sendMessage(embedBuilder.build()).queue();
+		MessageChannel channel = event.getAuthor().openPrivateChannel().complete();
+
+		channel.sendMessage(printout.toString()).queue();
+		channel.sendMessage(embedBuilder.build()).queue();
 		// embedBuilder.setDescription("");
 
 	}
