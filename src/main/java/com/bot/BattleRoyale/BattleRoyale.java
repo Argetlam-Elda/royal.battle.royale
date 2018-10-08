@@ -39,27 +39,43 @@ public class BattleRoyale extends Thread {
 	private Boolean verbose;
 
 	/**
+	 * Tell if this command is to be redux-ified.
+	 */
+	private Boolean redux;
+
+	/**
 	 * Init the battle royale. Make a new random generator, set verbose and channel from flags, and generate the fighters.
 	 * @param arguments - any arguments passed in with the command
-	 * @param event
+	 * @param event - the message event containing the command to start this battle
 	 */
-	public BattleRoyale(@NotNull ArrayList<String> arguments, @NotNull MessageReceivedEvent event) {
+	public BattleRoyale(@NotNull ArrayList<String> arguments, @NotNull MessageReceivedEvent event) throws IllegalStateException {
 		fighters = new ArrayList<>();
-		fighters = getFighters(arguments, event);
 		rand = new Random();
 		verbose = false;
+		redux = false;
+
+		arguments.remove(0);
 
 		guild = event.getGuild();
+		if (guild == null) {
+			throw new IllegalStateException("Can't preform a battle royale from a direct message. Try running this in a server.");
+		}
 
 		ArrayList<String> switches = new ArrayList<>();
-		ArrayList<String> other = new ArrayList<>();
+//		ArrayList<String> other = new ArrayList<>();
 		for (String argument: arguments) {
 			if (argument.startsWith("-")) {
 				switches.add(argument.substring(1).toLowerCase());
 			}
-			else {
-				other.add(argument);
-			}
+//			else {
+//				other.add(argument);
+//			}
+		}
+
+		fighters = getFighters(event);
+
+		if (switches.contains("redux")) {
+			redux = true;
 		}
 
 		if (switches.contains("v") || switches.contains("verbose")) {
@@ -88,9 +104,6 @@ public class BattleRoyale extends Thread {
 		if (this.isInterrupted()) {
 			return;
 		}
-		// arrange the fighters alphabetically
-		Collections.sort(fighters);
-
 		int roundCount = 0;
 		// As long as there is more than one fighter, do another round
 		while (fighters.size() > 1) {
@@ -113,8 +126,10 @@ public class BattleRoyale extends Thread {
 			}
 			battleReport.insert(0, "\tRound " + roundCount + ":\tCombatants: " + startingCombatants + "\n");
 			try {
-				sendBattleReport(battleReport.toString());
-				sendHPList(nameLength);
+				if (!redux) {
+					sendBattleReport(battleReport.toString());
+					sendHPList(nameLength);
+				}
 			} catch (InterruptedException e) {
 				return;
 			}
@@ -127,7 +142,7 @@ public class BattleRoyale extends Thread {
 			channel.sendMessage("```\nBehold your champion, " + victor + " of " + guild.getName() + ", wielding their mighty " + victor.getWeapon() + " and wearing their " + victor.getArmor() +  "!\n```").queue();
 		}
 		else {
-			// TODO - check this never happens
+			channel.sendMessage("```\nBehold your champions, "  + fighters.toString() + ". Idk what happened, but I guess you all win.\n```").queue();
 		}
 	}
 
@@ -195,8 +210,6 @@ public class BattleRoyale extends Thread {
 	private String enactAttack(@NotNull Fighter attacker, Fighter defender, int nameLength, int weaponNameLength, int hitFlavorTextLength) {
 		// Target of the attack, will be defender unless there is a critical fail
 		Fighter target = defender;
-		// Was this hit critical? 2/3 conditions is is
-		Boolean critical = true;
 		// Roll to hit
 		int roll = rand.nextInt(20) + 1;
 		// Damage total
@@ -207,9 +220,6 @@ public class BattleRoyale extends Thread {
 		}
 		else if (roll == 20) {
 			damage += 10;
-		}
-		else {
-			critical = false;
 		}
 		// If there is no target (only if attacker is the last combatant and didn't hit themself)
 		if (target == null) {
@@ -224,7 +234,14 @@ public class BattleRoyale extends Thread {
 			hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.CRIT);
 			battleReport.append("  Critical hit!\n");
 			if (attacker.getWeapon().cripple(defender.getArmor(), rand)) {
-				battleReport.append(attacker.toString() + " destroyed " + defender.toString() + "'s " + defender.getArmor().toString() + " with their " + attacker.getWeapon() + ".\n");
+				battleReport.append(attacker.toString());
+				battleReport.append(" destroyed ");
+				battleReport.append(defender.toString());
+				battleReport.append( "'s ");
+				battleReport.append(defender.getArmor().toString());
+				battleReport.append(" with their ");
+				battleReport.append(attacker.getWeapon());
+				battleReport.append(".\n");
 			}
 		}
 		// on a critical fail
@@ -293,6 +310,7 @@ public class BattleRoyale extends Thread {
 		// Textual record of what happens during each round
 		StringBuilder battleReport = new StringBuilder();
 		// Shuffle the fighter attack order
+		@SuppressWarnings("unchecked")
 		ArrayList<Fighter> shuffledFighters = (ArrayList<Fighter>) fighters.clone();
 		Collections.shuffle(shuffledFighters);
 		for (Fighter attacker: shuffledFighters) {
@@ -301,11 +319,7 @@ public class BattleRoyale extends Thread {
 			if (attacker.getRevengeTarget() != null && shuffledFighters.contains(attacker.getRevengeTarget()) && rand.nextBoolean()) {
 				defender = attacker.getRevengeTarget();
 			}
-			else if (fighters.size() == 1) {
-				// TODO - make enactAttack()
-				// battleReport.append(enactAttack();
-			}
-			else {
+			else if (fighters.size() != 1) {
 				while(defender == null || defender == attacker) {
 					defender = fighters.get(rand.nextInt(fighters.size()));
 				}
@@ -317,42 +331,40 @@ public class BattleRoyale extends Thread {
 
 	/**
 	 * Build a list of fighters from the switches passed in and the members of the guild.
-	 * @param arguments - list of the flags
-	 * @param event
-	 * @return
+	 * @param event - the message event containing the command to start this battle
+	 * @return - an alphabetically sorted list of the fighters
 	 */
-	private ArrayList<Fighter> getFighters(@NotNull ArrayList<String> arguments, MessageReceivedEvent event) {
+	private ArrayList<Fighter> getFighters(MessageReceivedEvent event) {
 		ArrayList<Member> candidates;
-		// Play with everyone
-		if (arguments.isEmpty()) {
-			candidates = new ArrayList<>(event.getGuild().getMembers());
-		}
 		// Play with mentioned people
-		else if (event.getMessage().getMentionedMembers().size() > 0) {
+		if (!event.getMessage().getMentionedMembers().isEmpty()) {
 			candidates = new ArrayList<>(event.getMessage().getMentionedMembers());
 		}
 		// Play with players that have the mentioned rolls
-		// TODO - actually work, check if there are mentioned players
-		else {
+		else if (!event.getMessage().getMentionedRoles().isEmpty()) {
 			candidates = new ArrayList<>(event.getGuild().getMembersWithRoles(event.getMessage().getMentionedRoles()));
 		}
+		else {
+			candidates = new ArrayList<>(event.getGuild().getMembers());
+		}
 		// remove bots
-		ArrayList<Member> botlessCandidates = (ArrayList<Member>) candidates.clone();
-		for (Member candidate: candidates) {
-			if (candidate.getUser().isBot()) {
-				botlessCandidates.remove(candidate);
+		for (int i = 0; i < candidates.size(); i++) {
+			if (candidates.get(i).getUser().isBot()) {
+				candidates.remove(i);
+				i--;
 			}
 		}
-		if (botlessCandidates.size() < 3) {
+		if (candidates.size() < 3) {
 			channel.sendMessage(":x:You need least 3 contestants to hold a battle royale.:x:").queue();
 			interrupt();
 		}
-		for (Member candidate: botlessCandidates) {
+		for (Member candidate: candidates) {
 			fighters.add(new Fighter(candidate));
 		}
 		if (fighters.size() == 0) {
 			interrupt();
 		}
+		Collections.sort(fighters);
 		 return fighters;
 	}
 }
