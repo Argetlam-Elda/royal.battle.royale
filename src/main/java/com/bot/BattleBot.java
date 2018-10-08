@@ -49,7 +49,7 @@ public class BattleBot {
 		 * @param parser - the message handler for these shards
 		 * @throws Exception - don't want to handle any problems that happen in here.
 		 */
-		public ShardingHandler(Parser parser) throws Exception {
+		ShardingHandler(Parser parser) throws Exception {
 			shardList = new ArrayList<>();
 			JDABuilder shardBuilder = new JDABuilder(AccountType.BOT).setToken(config.getConfig(Config.DISCORD_TOKEN));
 			shardBuilder.addEventListener(parser);
@@ -74,7 +74,7 @@ public class BattleBot {
 		config = new Config();
 		parser = new Parser();
 		populateCommands();
-		// TODO - add logger
+		// TODO - add logger, count command usage
 		try {
 			shardingHandler = new ShardingHandler(parser);
 		} catch (LoginException e) {
@@ -88,7 +88,7 @@ public class BattleBot {
 	/**
 	 * Add all commands to the parser
 	 */
-	public void populateCommands() {
+	private void populateCommands() {
 		parser.addCommand(new BattleRoyaleCommand());
 		parser.addCommand(new HelpCommand());
 		parser.addCommand(new InviteCommand());
