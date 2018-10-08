@@ -73,7 +73,7 @@ public class CommentQueue extends Thread {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (!interrupted()) {
 			try {
 				if (!queue.isEmpty()) {
 					queue.poll().messageAction.complete();
