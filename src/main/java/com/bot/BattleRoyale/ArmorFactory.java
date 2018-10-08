@@ -93,7 +93,6 @@ public class ArmorFactory {
 		 */
 		public boolean cripple(int crippleDamage, Random rand) {
 			if (rand.nextInt(10) + crippleDamage > 7 + crippleSave) {
-				// TODO - what to do on a cripple
 				name = "damaged " + name;
 				resist = 0;
 				return true;
@@ -111,11 +110,15 @@ public class ArmorFactory {
 
 		@Override
 		public Armor clone() {
-			Armor armor = new Armor();
-			armor.name = name;
-			armor.resist = resist;
-			armor.crippleSave = crippleSave;
-			return armor;
+			try {
+				return (Armor) super.clone();
+			} catch (CloneNotSupportedException e) {
+				Armor armor = new Armor();
+				armor.name = name;
+				armor.resist = resist;
+				armor.crippleSave = crippleSave;
+				return armor;
+			}
 		}
 	}
 
@@ -234,7 +237,7 @@ public class ArmorFactory {
 		check.put(CHANCE_RANGE_MAX, false);
 		check.put(CHANCE_RANGE_MIN, false);
 		Armor armor = new Armor();
-		boolean ready;
+		boolean ready = true;
 		while (fileScanner.hasNext()) {
 			String line = fileScanner.nextLine();
 			if (line.equals(END_ARMOR)) {
@@ -266,13 +269,11 @@ public class ArmorFactory {
 				}
 				check.put(line, true);
 			}
-			// TODO - get chances of starting with each armor
 		}
 		// check that all parts of the weapon were added
-		ready = armor.isBuilt();
+		ready = armor.isBuilt() && ready;
 		for (Boolean bool: check.values()) {
 			if (!bool) {
-				// TODO - not ready armor
 				ready = false;
 			}
 		}

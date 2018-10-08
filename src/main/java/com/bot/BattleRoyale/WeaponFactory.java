@@ -112,12 +112,16 @@ public class WeaponFactory {
 
 		@Override
 		public Weapon clone() {
-			Weapon weapon = new Weapon();
-			weapon.flavors = flavors;
-			weapon.damage = damage;
-			weapon.name = name;
-			weapon.crippleDamage = crippleDamage;
-			return weapon;
+			try {
+				return (Weapon) super.clone();
+			} catch (CloneNotSupportedException e) {
+				Weapon weapon = new Weapon();
+				weapon.flavors = flavors;
+				weapon.damage = damage;
+				weapon.name = name;
+				weapon.crippleDamage = crippleDamage;
+				return weapon;
+			}
 		}
 
 		/**
@@ -222,7 +226,6 @@ public class WeaponFactory {
 	 */
 	private void readWeaponsFromFile(File file) throws IllegalStateException {
 		try {
-			HashMap<String, String> hashMap = new HashMap<>();
 			Scanner fileScanner = new Scanner(file);
 			boolean rangeMinB = false, rangeMaxB = false;
 			while (fileScanner.hasNext() && !(rangeMaxB && rangeMinB)) {
@@ -288,38 +291,44 @@ public class WeaponFactory {
 				if (check.get(line)) {
 					ready = false;
 				}
-				if (line.equals(NAME)) {
-					weapon.name = fileScanner.nextLine();
-				} else if (line.equals(DAMAGE)) {
-					weapon.damage = Integer.parseInt(fileScanner.nextLine());
-				} else if (line.equals(CRIPPLE_DAMAGE)) {
-					weapon.crippleDamage = Integer.parseInt(fileScanner.nextLine());
-				} else if (line.equals(NORMAL_HIT_MESSAGE)) {
-					weapon.flavors.put(WeaponFlavor.HIT, fileScanner.nextLine());
-				} else if (line.equals(CRITICAL_HIT_MESSAGE)) {
-					weapon.flavors.put(WeaponFlavor.CRIT, fileScanner.nextLine());
-				} else if (line.equals(SELF_HIT_MESSAGE)) {
-					weapon.flavors.put(WeaponFlavor.SELF, fileScanner.nextLine());
-				} else if (line.equals(SUICIDE_MESSAGE)) {
-					weapon.flavors.put(WeaponFlavor.SUICIDE, fileScanner.nextLine());
-				} else if (line.equals(CHANCE_RANGE_MAX)) {
-					weapon.spawnRangeMax = Integer.parseInt(fileScanner.nextLine());
-				} else if (line.equals(CHANCE_RANGE_MIN)) {
-					weapon.spawnRangeMin = Integer.parseInt(fileScanner.nextLine());
-				}
-				else {
-					// In case there is something in the check that's not here yet
-					break;
+				switch (line) {
+					case NAME:
+						weapon.name = fileScanner.nextLine();
+						break;
+					case DAMAGE:
+						weapon.damage = Integer.parseInt(fileScanner.nextLine());
+						break;
+					case CRIPPLE_DAMAGE:
+						weapon.crippleDamage = Integer.parseInt(fileScanner.nextLine());
+						break;
+					case NORMAL_HIT_MESSAGE:
+						weapon.flavors.put(WeaponFlavor.HIT, fileScanner.nextLine());
+						break;
+					case CRITICAL_HIT_MESSAGE:
+						weapon.flavors.put(WeaponFlavor.CRIT, fileScanner.nextLine());
+						break;
+					case SELF_HIT_MESSAGE:
+						weapon.flavors.put(WeaponFlavor.SELF, fileScanner.nextLine());
+						break;
+					case SUICIDE_MESSAGE:
+						weapon.flavors.put(WeaponFlavor.SUICIDE, fileScanner.nextLine());
+						break;
+					case CHANCE_RANGE_MAX:
+						weapon.spawnRangeMax = Integer.parseInt(fileScanner.nextLine());
+						break;
+					case CHANCE_RANGE_MIN:
+						weapon.spawnRangeMin = Integer.parseInt(fileScanner.nextLine());
+						break;
+					default:
+						break;
 				}
 				check.put(line, true);
 			}
-			// TODO - get chances of starting with each weapon
 		}
 		// check that all parts of the weapon were added
-		ready = weapon.isBuilt();
+		ready = weapon.isBuilt() && ready;
 		for (Boolean bool: check.values()) {
 			if (!bool) {
-				// TODO - not ready weapon
 				ready = false;
 			}
 		}
