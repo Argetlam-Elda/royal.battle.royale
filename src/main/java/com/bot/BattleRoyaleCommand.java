@@ -28,7 +28,7 @@ public class BattleRoyaleCommand implements Command {
 
 	@Override
 	public String getUsage() {
-		return "<\"\">";
+		return "<\"\"|-v|-verbose|-here|-dm|-direct-message|-r|-redux>";
 	}
 
 	@Override

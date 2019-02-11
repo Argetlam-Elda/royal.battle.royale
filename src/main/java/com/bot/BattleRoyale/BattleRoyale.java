@@ -23,6 +23,8 @@ public class BattleRoyale extends Thread {
 	 */
 	private MessageChannel channel;
 
+	private MessageQueue messages;
+
 	/**
 	 * A list of all the fighters in this match.
 	 */
@@ -39,7 +41,7 @@ public class BattleRoyale extends Thread {
 	private Boolean verbose;
 
 	/**
-	 * Tell if this command is to be redux-ified.
+	 * Tell if this command is to be reduxified.
 	 */
 	private Boolean redux;
 
@@ -62,19 +64,15 @@ public class BattleRoyale extends Thread {
 		}
 
 		ArrayList<String> switches = new ArrayList<>();
-//		ArrayList<String> other = new ArrayList<>();
 		for (String argument: arguments) {
 			if (argument.startsWith("-")) {
 				switches.add(argument.substring(1).toLowerCase());
 			}
-//			else {
-//				other.add(argument);
-//			}
 		}
 
 		fighters = getFighters(event);
 
-		if (switches.contains("redux")) {
+		if (switches.contains("r") || switches.contains("redux")) {
 			redux = true;
 		}
 
@@ -94,6 +92,8 @@ public class BattleRoyale extends Thread {
 		if (switches.contains("dm") || switches.contains("direct-message")) {
 			channel = event.getAuthor().openPrivateChannel().complete();
 		}
+
+		messages = new MessageQueue(channel);
 	}
 
 	/**
@@ -127,6 +127,7 @@ public class BattleRoyale extends Thread {
 			battleReport.insert(0, "\tRound " + roundCount + ":\tCombatants: " + startingCombatants + "\n");
 			try {
 				if (!redux) {
+					messages.endRound(roundCount, startingCombatants, fighters.size());
 					sendBattleReport(battleReport.toString());
 					sendHPList(nameLength);
 				}
@@ -138,8 +139,7 @@ public class BattleRoyale extends Thread {
 			channel.sendMessage("```Loser, loser, chicken loser.\n```").queue();
 		}
 		else if (fighters.size() == 1) {
-			Fighter victor = fighters.get(0);
-			channel.sendMessage("```\nBehold your champion, " + victor + " of " + guild.getName() + ", wielding their mighty " + victor.getWeapon() + " and wearing their " + victor.getArmor() +  "!\n```").queue();
+			messages.endMatch(fighters.get(0), guild.getName());
 		}
 		else {
 			channel.sendMessage("```\nBehold your champions, "  + fighters.toString() + ". Idk what happened, but I guess you all win.\n```").queue();
@@ -158,19 +158,20 @@ public class BattleRoyale extends Thread {
 		StringBuilder output = new StringBuilder("```\nRemaining Combatants: " + fighters.size() + "\n");
 		for (Fighter fighter: fighters) {
 			String line = String.format("%-" + nameLength + "s: %-2d\n", fighter.toString(), fighter.getHealth());
-			if (output.length() + line.length() < 1900) {
-				output.append(line);
-			}
-			else {
-				output.append("```");
-				channel.sendMessage(output).complete();
-				sleep(1000);
-				output = new StringBuilder("```\n" + line);
-			}
+			messages.addHp(line);
+//			if (output.length() + line.length() < 1900) {
+//				output.append(line);
+//			}
+//			else {
+//				output.append("```");
+				// channel.sendMessage(output).complete();
+//				sleep(1000);
+//				output = new StringBuilder("```\n" + line);
+//			}
 		}
-		output.append("```");
-		channel.sendMessage(output).queue();
-		sleep(1000);
+//		output.append("```");
+		// channel.sendMessage(output).queue();
+//		sleep(1000);
 	}
 
 	/**
@@ -298,11 +299,12 @@ public class BattleRoyale extends Thread {
 			}
 			fighters.remove(target);
 		}
+		messages.addAttack(battleReport.toString());
 		return battleReport.toString();
 	}
 
 	/**
-	 * Preform all acitons needed for the round
+	 * Preform all actions needed for the round
 	 * @param nameLength - the max name length in this round
 	 * @return - A string containing the log data for attacks in this round
 	 */

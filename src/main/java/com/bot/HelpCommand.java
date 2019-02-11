@@ -19,25 +19,15 @@ public class HelpCommand implements Command {
 		embedBuilder.setColor(Color.BLACK);
 		embedBuilder.setTitle("Command List");
 
-		StringBuilder printout = new StringBuilder();
 		for (Command command: BattleBot.getInstance().getParser().getCommands()) {
-			printout.append("`");
-			printout.append(BattleBot.getInstance().getConfig(Config.PREFIX));
-			printout.append(command.getCommand());
-			printout.append(" ");
-			printout.append(command.getUsage());
-			printout.append("`: ");
-			printout.append(command.getDescription());
-			printout.append("\n");
 			embedBuilder.addField(command.getCommandCategory(), "`" + BattleBot.getInstance().getConfig(Config.PREFIX)
 					+ command.getCommand()
 					+ " " + command.getUsage() + "`: " + command.getDescription(), false);
 		}
 		MessageChannel channel = event.getAuthor().openPrivateChannel().complete();
 
-		channel.sendMessage(printout.toString()).queue();
+		embedBuilder.setDescription(" ");
 		channel.sendMessage(embedBuilder.build()).queue();
-		// embedBuilder.setDescription("");
 
 	}
 
