@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Royal.Battle.Royale.Remastered.iml" filepath="$PROJECT_DIR$/.idea/modules/Royal.Battle.Royale.Remastered.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Royal.Battle.Royale.Remastered_main.iml" filepath="$PROJECT_DIR$/.idea/modules/Royal.Battle.Royale.Remastered_main.iml" group="Royal.Battle.Royale.Remastered" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Royal.Battle.Royale.Remastered_test.iml" filepath="$PROJECT_DIR$/.idea/modules/Royal.Battle.Royale.Remastered_test.iml" group="Royal.Battle.Royale.Remastered" />
+    </modules>
+  </component>
+</project>
