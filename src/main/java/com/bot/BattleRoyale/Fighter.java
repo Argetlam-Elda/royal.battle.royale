@@ -117,7 +117,7 @@ public class Fighter implements Comparable<Fighter> {
 	 * @return - a string telling what was looted
 	 */
 	public String lootFigher(Fighter corpse, Random rand) {
-		if (corpse.getHealth() > 0) {
+		if (!corpse.isDead()) {
 			return "";
 		}
 		boolean w = false;
@@ -152,6 +152,14 @@ public class Fighter implements Comparable<Fighter> {
 	}
 
 	/**
+	 * Returns true if the fighter is still alive, false otherwise.
+	 * @return - true where hp is above 0
+	 */
+	public boolean isDead() {
+		return hp <= 0;
+	}
+
+	/**
 	 * Get the fighter's most hated enemy.
 	 * @return - the fighter's most hated enemy
 	 */
@@ -177,6 +185,7 @@ public class Fighter implements Comparable<Fighter> {
 
 	@Override
 	public int compareTo(Fighter o) {
-		return this.name.compareTo(o.name);
+		// TODO - check hp comparison is correct
+		return (name.compareTo(o.name) == 0 ? hp - o.hp : name.compareTo(o.name));
 	}
 }

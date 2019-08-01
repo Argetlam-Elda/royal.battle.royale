@@ -34,7 +34,6 @@ public class BattleRoyale extends Thread {
 	 */
 	private Random rand;
 
-
 	/**
 	 * Init the battle royale. Make a new random generator, set verbose and channel from flags, and generate the fighters.
 	 * @param arguments - any arguments passed in with the command
@@ -94,74 +93,12 @@ public class BattleRoyale extends Thread {
 		if (this.isInterrupted()) {
 			return;
 		}
-		int roundCount = 0;
 		// As long as there is more than one fighter, do another round
-		while (fighters.size() > 1) {
-			roundCount++;
-			// Get the max name length
-			int nameLength = 0;
-			int weaponNameLength = 0;
-			int hitFlavorTextLength = 0;
-			for (Fighter fighter: fighters) {
-				nameLength = Math.max(fighter.toString().length(), nameLength);
-				weaponNameLength = Math.max(fighter.getWeapon().toString().length(), weaponNameLength);
-				hitFlavorTextLength = Math.max(fighter.getWeapon().getFlavorTextLength(), hitFlavorTextLength);
-			}
-			int startingCombatants = fighters.size();
+		for (int roundCount = 1; fighters.size() > 1; roundCount++) {
 			// Do a round of battle
-			StringBuilder battleReport = new StringBuilder();
-			battleReport.append(enactRound(nameLength, weaponNameLength, hitFlavorTextLength));
-			if (battleReport.toString().length() == 0) {
-				battleReport.append("No fatalities.\n");
-			}
-			battleReport.insert(0, "\tRound " + roundCount + ":\tCombatants: " + startingCombatants + "\n");
-			try {
-				if (!redux) {
-					messages.endRound(roundCount, startingCombatants, fighters.size());
-					sendBattleReport(battleReport.toString());
-					sendHPList(nameLength);
-				}
-			} catch (InterruptedException e) {
-				return;
-			}
+			enactRound(roundCount);
 		}
-		if (fighters.size() == 0) {
-			channel.sendMessage("```Loser, loser, chicken loser.\n```").queue();
-		}
-		else if (fighters.size() == 1) {
-			messages.endMatch(fighters.get(0), guild.getName());
-		}
-		else {
-			channel.sendMessage("```\nBehold your champions, "  + fighters.toString() + ". Idk what happened, but I guess you all win.\n```").queue();
-		}
-	}
-
-	/**
-	 * Send message(s) containing the health of everyone still in the fight.
-	 * @param nameLength - longest name in the list.
-	 * @throws InterruptedException - sleep() failed, probably
-	 */
-	private void sendHPList(int nameLength) throws InterruptedException {
-		if (!verbose) {
-			return;
-		}
-		StringBuilder output = new StringBuilder("```\nRemaining Combatants: " + fighters.size() + "\n");
-		for (Fighter fighter: fighters) {
-			String line = String.format("%-" + nameLength + "s: %-2d\n", fighter.toString(), fighter.getHealth());
-			messages.addHp(line);
-//			if (output.length() + line.length() < 1900) {
-//				output.append(line);
-//			}
-//			else {
-//				output.append("```");
-				// channel.sendMessage(output).complete();
-//				sleep(1000);
-//				output = new StringBuilder("```\n" + line);
-//			}
-		}
-//		output.append("```");
-		// channel.sendMessage(output).queue();
-//		sleep(1000);
+		messages.endMatch(fighters, guild.getName());
 	}
 
 	/**
@@ -181,24 +118,20 @@ public class BattleRoyale extends Thread {
 			else {
 				output.append("```");
 				channel.sendMessage(output).queue();
-				sleep(1000);
 				output = new StringBuilder("```\n" + line + "\n");
 			}
 		}
 		output.append("```");
 		channel.sendMessage(output).queue();
-		sleep(1000);
 
 	}
 
 	/**
 	 * Preform all actions needed for the attacker to assault the defender.
 	 * @param attacker - fighter preforming the attack
-	 * @param defender - fighter being attacked
-	 * @param nameLength - the max name length in this round
-	 * @return - A string containing the log data for this attack
+	 * @param defender - fighter being attacke
 	 */
-	private String enactAttack(Fighter attacker, Fighter defender, int nameLength, int weaponNameLength, int hitFlavorTextLength) {
+	private void enactAttack(Fighter attacker, Fighter defender, int roundCount) {
 		// Target of the attack, will be defender unless there is a critical fail
 		Fighter target = defender;
 		// Roll to hit
@@ -214,111 +147,42 @@ public class BattleRoyale extends Thread {
 		}
 		// If there is no target (only if attacker is the last combatant and didn't hit themself)
 		if (target == null) {
-			return "";
+			return;
 		}
 		// Target takes damage, and return the damage they take after armor resistance.
 		damage = target.takeDamage(damage);
-		String hitFlavorText;
-		StringBuilder battleReport = new StringBuilder();
-		// on a critical hit
-		if (roll == 20) {
-			hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.CRIT);
-			battleReport.append("  Critical hit!\n");
-			if (attacker.getWeapon().cripple(defender.getArmor(), rand)) {
-				battleReport.append(attacker.toString());
-				battleReport.append(" destroyed ");
-				battleReport.append(defender.toString());
-				battleReport.append( "'s ");
-				battleReport.append(defender.getArmor().toString());
-				battleReport.append(" with their ");
-				battleReport.append(attacker.getWeapon());
-				battleReport.append(".\n");
-			}
-		}
-		// on a critical fail
-		else if (roll == 1) {
-			battleReport.append("  Critical fail!\n");
-			if (target.getHealth() <= 0) {
-				hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.SUICIDE);
-			}
-			else {
-				hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.SELF);
-				if (fighters.size() == 1) {
-					battleReport.append(attacker);
-					battleReport.append(", seeing no more opponents before them, attempts to end it all, but fails. Not that we expected anything more from them.");
-				}
-			}
-		}
-		// on a regular hit
-		else {
-			hitFlavorText = attacker.getWeapon().getFlavor(WeaponFactory.WeaponFlavor.HIT);
-			battleReport.append("\n");
-		}
-		// Store the default format attack
-		String format = "%-" + nameLength + "s %-" + hitFlavorTextLength + "s %-" + nameLength + "s with their %-" + weaponNameLength + "s for %" + "2" + "d";
-		battleReport.insert(0, String.format(format, attacker, hitFlavorText, (target == attacker ? "themself" : target), attacker.getWeapon(), damage));
-		if (!verbose) {
-			battleReport = new StringBuilder();
-		}
-		if (target.getHealth() <= 0) {
-			if (attacker == target) {
-				if (fighters.size() == 1) {
-					battleReport.append(attacker);
-					battleReport.append(", seeing no more opponents before them, decides to end it all.");
-				} else {
-					battleReport.append(attacker);
-					battleReport.append(" kills themself out of shame.");
-				}
-			} else {
-				if (roll == 20) {
-					battleReport.append(attacker);
-					battleReport.append(" fucking murders ");
-					battleReport.append(defender);
-					battleReport.append(" with their ");
-					battleReport.append(attacker.getWeapon());
-				}
-				else {
-					battleReport.append(attacker);
-					battleReport.append(" kills ");
-					battleReport.append(defender);
-					battleReport.append(" with their ");
-					battleReport.append(attacker.getWeapon());
-				}
-				battleReport.append(attacker.lootFigher(defender, rand));
-				battleReport.append("!\n");
-			}
+		if (target.isDead()) {
 			fighters.remove(target);
 		}
-		messages.addAttack(battleReport.toString());
-		return battleReport.toString();
+		messages.queueAttackMessage(roundCount, attacker, target, damage, roll == 20, roll == 1, (roll == 20 ? attacker.getWeapon().cripple(defender.getArmor(), rand) : false), fighters.size() == 0, attacker.lootFigher(target, rand));
 	}
 
 	/**
 	 * Preform all actions needed for the round
-	 * @param nameLength - the max name length in this round
-	 * @return - A string containing the log data for attacks in this round
 	 */
-	private String enactRound(int nameLength, int weaponNameLength, int hitFlavorTextLength) {
-		// Textual record of what happens during each round
-		StringBuilder battleReport = new StringBuilder();
+	private void enactRound(int roundCount) {
+		int startingCombatants = fighters.size();
 		// Shuffle the fighter attack order
 		@SuppressWarnings("unchecked")
 		ArrayList<Fighter> shuffledFighters = (ArrayList<Fighter>) fighters.clone();
 		Collections.shuffle(shuffledFighters);
 		for (Fighter attacker: shuffledFighters) {
+			if (attacker.isDead()) {
+				continue;
+			}
 			Fighter defender = null;
 			// if there is a potential for revenge, 50% chance of attacking them
 			if (attacker.getRevengeTarget() != null && shuffledFighters.contains(attacker.getRevengeTarget()) && rand.nextBoolean()) {
 				defender = attacker.getRevengeTarget();
 			}
 			else if (fighters.size() != 1) {
-				while(defender == null || defender == attacker) {
+				while(defender == null || defender == attacker || defender.isDead()) {
 					defender = fighters.get(rand.nextInt(fighters.size()));
 				}
 			}
-			battleReport.append(enactAttack(attacker, defender, nameLength, weaponNameLength, hitFlavorTextLength));
+			enactAttack(attacker, defender, roundCount);
 		}
-		return battleReport.toString();
+		messages.endRound(roundCount, startingCombatants, fighters);
 	}
 
 }
