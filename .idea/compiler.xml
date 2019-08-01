@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="Royal.Battle.Royale.Remastered_main" target="1.8" />
-      <module name="Royal.Battle.Royale.Remastered_test" target="1.8" />
+      <module name="Royal.Battle.Royale.Remastered_main" target="12" />
+      <module name="Royal.Battle.Royale.Remastered_test" target="12" />
     </bytecodeTargetLevel>
   </component>
 </project>
