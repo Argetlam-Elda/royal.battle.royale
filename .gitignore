@@ -1,26 +1,3 @@
-Skip to content
- 
-Search or jump to…
-
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@Argetlam-Elda 
-Your GitHub academic discount coupon has expired
-If you’re still eligible, you may re-apply.
-If you’re no longer eligible, you may either update your payment information, or downgrade your account.
-If you have any questions, please contact GitHub Education.
-
-1
-0 1 Argetlam-Elda/royal.battle.royale
- Code  Issues 0  Pull requests 0  Projects 0  Wiki  Security  Insights  Settings
-royal.battle.royale/.gitignore
- Argetlam-Elda initial commit, start out bot with battleroyale command that does not…
-5d18f12 on Jun 19, 2018
-73 lines (53 sloc)  1.39 KB
-    
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
@@ -93,15 +70,3 @@ gradle-app.setting
 
 # Config file with tokens in it
 config/Config.conf
-© 2019 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
