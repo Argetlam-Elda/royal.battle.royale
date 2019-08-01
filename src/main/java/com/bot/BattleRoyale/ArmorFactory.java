@@ -9,50 +9,51 @@ import java.util.Scanner;
 
 /**
  * Build armor from the stats given in the config file.
+ *
  * @author ArgetlamElda
  */
 public class ArmorFactory {
-
+	
 	private static final String CHANCE_RANGE_MIN = "CHANCE RANGE MIN";
 	private static final String CHANCE_RANGE_MAX = "CHANCE RANGE MAX";
 	private static final String START_ARMOR = "START ARMOR";
 	private static final String END_ARMOR = "END ARMOR";
-
+	
 	private static final String NAME = "NAME";
 	private static final String DAMAGE_RESIST = "RESIST";
 	private static final String BREAK_SAVE = "BREAK SAVE";
-
-
+	
+	
 	/**
 	 * Stores all the data needed for a weapon, including damage and flavor text.
 	 */
 	public class Armor implements Cloneable {
-
+		
 		/**
 		 * The armor's name.
 		 */
 		private String name;
-
+		
 		/**
 		 * The armor's damage resistance.
 		 */
 		private int resist;
-
+		
 		/**
 		 * The armor's cripple resistance.
 		 */
 		private int crippleSave;
-
+		
 		/**
 		 * The upper limit of this armor's spawn range.
 		 */
 		private int spawnRangeMax;
-
+		
 		/**
 		 * The lower limit of this armor's spawn range.
 		 */
 		private int spawnRangeMin;
-
+		
 		/**
 		 * Initialize this armor with no name, 0 resistance, and 0 cripple resistance.
 		 */
@@ -61,32 +62,35 @@ public class ArmorFactory {
 			resist = 0;
 			crippleSave = 0;
 		}
-
+		
 		/**
 		 * Check if spawnChance is within this armor's spawn range.
+		 *
 		 * @param spawnChance - the (usually random) number that determines what armor you get
 		 * @return - whether you get this weapon or not
 		 */
 		private boolean isInSpawnRange(int spawnChance) {
 			return (spawnChance < spawnRangeMax && spawnChance >= spawnRangeMin);
 		}
-
+		
 		/**
 		 * Get this armor's damage resistance.
+		 *
 		 * @return - the damage resistance
 		 */
 		public int getResist() {
 			return resist;
 		}
-
+		
 		public String toString() {
 			return name;
 		}
-
+		
 		/**
 		 * Attempt to cripple this armor with the given cripple damage
+		 *
 		 * @param crippleDamage - damage done to the armor's durability
-		 * @param rand - random number generator for crippling armor
+		 * @param rand          - random number generator for crippling armor
 		 * @return - whether the armor was crippled or not
 		 */
 		public boolean cripple(int crippleDamage, Random rand) {
@@ -97,15 +101,16 @@ public class ArmorFactory {
 			}
 			return false;
 		}
-
+		
 		/**
 		 * Check if the armor is correctly built or not
+		 *
 		 * @return - this armor has all the right values
 		 */
 		private boolean isBuilt() {
 			return name != null;
 		}
-
+		
 		@Override
 		public Armor clone() {
 			try {
@@ -119,33 +124,34 @@ public class ArmorFactory {
 			}
 		}
 	}
-
+	
 	private static ArmorFactory instance;
-
+	
 	public static ArmorFactory getInstance() {
 		if (instance == null) {
 			instance = new ArmorFactory();
 		}
 		return instance;
 	}
-
+	
 	/**
 	 * A list of the armors generated from the config file.
 	 */
 	private ArrayList<Armor> armors;
-
+	
 	/**
 	 * The maximum possible spawn range for these armor.
 	 */
 	private int rangeMax;
-
+	
 	/**
 	 * The minimum possible spawn range for these armor.
 	 */
 	private int rangeMin;
-
+	
 	/**
 	 * Initialize the armor factory and read in armor data from the config file.
+	 *
 	 * @throws IllegalStateException - the armor ranges have gaps
 	 */
 	private ArmorFactory() throws IllegalStateException {
@@ -153,32 +159,34 @@ public class ArmorFactory {
 		File file = new File("config/Battle_Royale_Configs/Battle_Royale_Armor.txt");
 		readWeaponsFromFile(file);
 	}
-
+	
 	/**
 	 * "Build" a piece of armor from the available armor in the factory.
+	 *
 	 * @return - a randomly selected armor
 	 */
 	public Armor buildArmor() {
 		Random rand = new Random();
 		int chance = rand.nextInt(rangeMax - rangeMin) + rangeMin;
-		for (Armor armor: armors) {
+		for (Armor armor : armors) {
 			if (armor.isInSpawnRange(chance)) {
 				return armor.clone();
 			}
 		}
 		return null;
 	}
-
+	
 	public int getMaxResist() {
 		int resist = 0;
-		for (Armor armor: armors) {
+		for (Armor armor : armors) {
 			resist = Math.max(armor.resist, resist);
 		}
 		return resist;
 	}
-
+	
 	/**
 	 * Go through the given file and generate armor for each stat block.
+	 *
 	 * @param file -  file containing all the armor stat blocks
 	 * @throws IllegalStateException - the armor ranges have gaps
 	 */
@@ -191,8 +199,7 @@ public class ArmorFactory {
 				if (line.equals(CHANCE_RANGE_MIN)) {
 					rangeMin = Integer.parseInt(fileScanner.nextLine());
 					rangeMinB = true;
-				}
-				else if (line.equals(CHANCE_RANGE_MAX)) {
+				} else if (line.equals(CHANCE_RANGE_MAX)) {
 					rangeMax = Integer.parseInt(fileScanner.nextLine());
 					rangeMaxB = true;
 				}
@@ -207,11 +214,11 @@ public class ArmorFactory {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
+		
 		int bottomRange = rangeMin;
 		while (bottomRange != rangeMax) {
 			int tempBottomRange = bottomRange;
-			for (Armor armor: armors) {
+			for (Armor armor : armors) {
 				if (armor.spawnRangeMin == bottomRange) {
 					bottomRange = armor.spawnRangeMax;
 					break;
@@ -222,9 +229,10 @@ public class ArmorFactory {
 			}
 		}
 	}
-
+	
 	/**
 	 * Go through the given stat block and generate a piece of armor from the given information.
+	 *
 	 * @param fileScanner - a scanner set to the beginning of the stat block to scan
 	 */
 	private void readWeapon(Scanner fileScanner) {
@@ -240,8 +248,7 @@ public class ArmorFactory {
 			String line = fileScanner.nextLine();
 			if (line.equals(END_ARMOR)) {
 				break;
-			}
-			else if (check.keySet().contains(line)) {
+			} else if (check.keySet().contains(line)) {
 				if (check.get(line)) {
 					ready = false;
 				}
@@ -270,15 +277,14 @@ public class ArmorFactory {
 		}
 		// check that all parts of the weapon were added
 		ready = armor.isBuilt() && ready;
-		for (Boolean bool: check.values()) {
+		for (Boolean bool : check.values()) {
 			if (!bool) {
 				ready = false;
 			}
 		}
 		if (ready) {
 			armors.add(armor);
-		}
-		else {
+		} else {
 			System.out.println(check.toString());
 		}
 	}

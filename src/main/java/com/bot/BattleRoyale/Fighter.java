@@ -11,32 +11,32 @@ import java.util.Random;
  * This stores all kinds of data about the fighters, and preforms actions such as attacking and defending.
  */
 public class Fighter implements Comparable<Fighter> {
-
+	
 	/**
 	 * The fighter's name. Duh.
 	 */
 	private String name;
-
+	
 	/**
 	 * How much hp the fighter has left.
 	 */
 	private int hp;
-
+	
 	/**
 	 * The (other) fighter this fighter wants to get revenge on.
 	 */
 	private Fighter revenge;
-
+	
 	/**
 	 * The fighter's weapon.
 	 */
 	private WeaponFactory.Weapon weapon;
-
+	
 	/**
 	 * The fighter's armor.
 	 */
 	private ArmorFactory.Armor armor;
-
+	
 	/**
 	 * Initialize a default fighter, with 100 hp, no revenge target, no name, and random weapon and armor.
 	 */
@@ -47,9 +47,10 @@ public class Fighter implements Comparable<Fighter> {
 		weapon = WeaponFactory.getInstance().buildWeapon();
 		armor = ArmorFactory.getInstance().buildArmor();
 	}
-
+	
 	/**
 	 * Build a list of fighters from the switches passed in and the members of the guild.
+	 *
 	 * @param event - the message event containing the command to start this battle
 	 * @return - an alphabetically sorted list of the fighters
 	 */
@@ -62,8 +63,7 @@ public class Fighter implements Comparable<Fighter> {
 		// Play with players that have the mentioned rolls
 		else if (!event.getMessage().getMentionedRoles().isEmpty()) {
 			candidates = new ArrayList<>(event.getGuild().getMembersWithRoles(event.getMessage().getMentionedRoles()));
-		}
-		else {
+		} else {
 			candidates = new ArrayList<>(event.getGuild().getMembers());
 		}
 		// remove bots
@@ -77,7 +77,7 @@ public class Fighter implements Comparable<Fighter> {
 			throw new IllegalStateException(":x:You need least 3 contestants to hold a battle royale.:x:");
 		}
 		ArrayList<Fighter> fighters = new ArrayList<>();
-		for (Member candidate: candidates) {
+		for (Member candidate : candidates) {
 			fighters.add(new Fighter(candidate));
 		}
 		if (fighters.size() == 0) {
@@ -86,9 +86,10 @@ public class Fighter implements Comparable<Fighter> {
 		Collections.sort(fighters);
 		return fighters;
 	}
-
+	
 	/**
 	 * Initialize a default fighter, then set it's name to the given member's nickname, or barring that, their name.
+	 *
 	 * @param member - the member to name this fighter after
 	 */
 	Fighter(Member member) {
@@ -98,9 +99,10 @@ public class Fighter implements Comparable<Fighter> {
 			name = member.getEffectiveName();
 		}
 	}
-
+	
 	/**
 	 * Subtract the incoming damage from the fighters hp pool, after reducing by armor resistance.
+	 *
 	 * @param damage - how much damage to take
 	 */
 	public int takeDamage(int damage) {
@@ -109,11 +111,12 @@ public class Fighter implements Comparable<Fighter> {
 		hp -= damage;
 		return damage;
 	}
-
+	
 	/**
 	 * If the corpse is dead, try and take its stuff.
+	 *
 	 * @param corpse - body to loot
-	 * @param rand - number generator to use for looting
+	 * @param rand   - number generator to use for looting
 	 * @return - a string telling what was looted
 	 */
 	public String lootFigher(Fighter corpse, Random rand) {
@@ -131,58 +134,62 @@ public class Fighter implements Comparable<Fighter> {
 			armor = corpse.armor;
 			if (w) {
 				lootRecord += " and " + armor.toString();
-			}
-			else {
+			} else {
 				lootRecord = ", and loots their " + armor.toString();
 			}
 		}
 		return lootRecord;
 	}
-
+	
 	public String toString() {
 		return name;
 	}
-
+	
 	/**
 	 * Get the fighter's remaining health.
+	 *
 	 * @return - the fighter's current health
 	 */
 	public int getHealth() {
 		return hp;
 	}
-
+	
 	/**
 	 * Returns true if the fighter is still alive, false otherwise.
+	 *
 	 * @return - true where hp is above 0
 	 */
 	public boolean isDead() {
 		return hp <= 0;
 	}
-
+	
 	/**
 	 * Get the fighter's most hated enemy.
+	 *
 	 * @return - the fighter's most hated enemy
 	 */
 	public Fighter getRevengeTarget() {
 		return revenge;
 	}
-
+	
 	/**
 	 * Get the fighter's weapon.
+	 *
 	 * @return - the fighter's weapon
 	 */
 	public WeaponFactory.Weapon getWeapon() {
 		return weapon;
 	}
-
+	
 	/**
 	 * Get the fighter's armor.
+	 *
 	 * @return - the fighter's armor
 	 */
 	public ArmorFactory.Armor getArmor() {
 		return armor;
 	}
-
+	
 	@Override
 	public int compareTo(Fighter o) {
 		// TODO - check hp comparison is correct
